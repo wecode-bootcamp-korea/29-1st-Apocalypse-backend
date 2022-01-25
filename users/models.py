@@ -8,9 +8,9 @@ class User(models.Model):
     address      = models.CharField(max_length=200)
     created_at   = models.DateTimeField(auto_now_add=True)
     updated_at   = models.DateTimeField(auto_now=True)
-    carts        = models.ManyToManyField("products.Product",through="orders.Cart", related_name='carts')
-    wishlists    = models.ManyToManyField("products.Product",through="orders.Wishlist", related_name= 'wishlists')
-    reviews      = models.ManyToManyField("products.Product",through="services.Review", related_name= 'reviews')
+    cart         = models.ManyToManyField("products.Product",through="orders.Cart", related_name='user_cart_product')
+    wishlist     = models.ManyToManyField("products.Product",through="orders.Wishlist", related_name= 'user_wishlist_product')
+    review       = models.ManyToManyField("products.Product",through="services.Review", related_name= 'user_review_product')
     
     class Meta:
         db_table = "users"

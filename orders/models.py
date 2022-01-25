@@ -28,7 +28,7 @@ class OrderStatus(models.Model):
 
 class Order(models.Model):
     user         = models.ForeignKey('users.User',on_delete=models.CASCADE,related_name='orders')
-    order_status = models.ForeignKey('OrderStatus',on_delete=models.CASCADE,related_name='orders')
+    status       = models.ForeignKey('OrderStatus',on_delete=models.CASCADE,related_name='orders')
     created_at   = models.DateTimeField(auto_now_add=True)
     updated_at   = models.DateTimeField(auto_now=True)
     
