@@ -3,7 +3,6 @@ from django.db import models
 class Review(models.Model):
     user         = models.ForeignKey('users.User',on_delete=models.CASCADE,related_name='review')
     product      = models.ForeignKey('products.Product',on_delete=models.CASCADE,related_name='review')
-    order_item   = models.ForeignKey('orders.OrderItem',on_delete=models.CASCADE,related_name='review')
     content      = models.CharField(max_length=600)
     rating       = models.IntegerField()
     created_at   = models.DateTimeField(auto_now_add=True)

@@ -9,7 +9,7 @@ class Category(models.Model):
         
 class Subcategory(models.Model):
     name         = models.CharField(max_length=50)
-    category     = models.ForeignKey("Category",on_delete=models.CASCADE, related_name='subcategories')
+    category     = models.ForeignKey("Category",on_delete=models.CASCADE, related_name='sub_categories')
     created_at   = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -54,17 +54,15 @@ class Preference(models.Model):
         db_table = 'preferences'
 
 class ProductComponent(models.Model):
-    product      = models.ForeignKey("Product",on_delete=models.CASCADE, related_name="pc_product")
-    component    = models.ForeignKey("Component",on_delete=models.CASCADE, related_name="pc_component")
+    product      = models.ForeignKey("Product",on_delete=models.CASCADE, related_name="productcomponent_products")
+    component    = models.ForeignKey("Component",on_delete=models.CASCADE, related_name="productcomponent_components")
 
     class Meta:
         db_table = 'products_components'
         
 class ProductPreference(models.Model):
-    product      = models.ForeignKey("Product",on_delete=models.CASCADE, related_name='pp_product')
-    preference   = models.ForeignKey("Preference",on_delete=models.CASCADE, related_name='pp_preferences')
+    product      = models.ForeignKey("Product",on_delete=models.CASCADE, related_name='productpreference_products')
+    preference   = models.ForeignKey("Preference",on_delete=models.CASCADE, related_name='productpreference_preferencess')
     
     class Meta:
         db_table = 'products_preferences'
-
-    
