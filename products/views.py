@@ -22,9 +22,9 @@ class CategoryList(View):
                 } for subcategory in category.sub_categories.all()]
             } for category in categories]
 
-        return JsonResponse({'message':'SUCCESS' ,'result' : result}, status=200)
+        return JsonResponse({'message':'SUCCESS' ,'Category' : result}, status=200)
     
-class FeaturingProductList(View):
+class LimitedProductList(View):
     def get(self,request):
         feature_products = Product.objects.filter(english_name__contains = 'Limited')
         
@@ -34,7 +34,7 @@ class FeaturingProductList(View):
             'image'         : [image.image_url for image in product.images.filter(product_id = product.id)][0] 
         } for product in feature_products]
         
-        return JsonResponse({'message':'SUCCESS' ,'result' : result}, status=200)
+        return JsonResponse({'message':'SUCCESS' ,'Limited Product List' : result}, status=200)
 
 class NewProductList(View):
     def get(self,request):
@@ -48,6 +48,6 @@ class NewProductList(View):
             'image'         : [image.image_url for image in product.images.filter(product_id = product.id)][0]
         } for product in new_products]
         
-        return JsonResponse({'message':'SUCCESS' ,'신제품 리스트' : result}, status=200)
+        return JsonResponse({'message':'SUCCESS' ,'New Product List' : result}, status=200)
     
 
