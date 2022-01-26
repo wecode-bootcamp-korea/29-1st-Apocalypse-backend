@@ -46,9 +46,13 @@ class SignInView(View):
             password        = user_data['password']
             user            = User.objects.get(email = email)
             
-            if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
-                return JsonResponse({'message' : 'INVALID_USER'}, status = 401)
-
+            if not re.match(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', email):
+                return JsonResponse({'message' : 'INVALID EMAIL'},       status = 400)
+            elif not re.match(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$', password):
+                return JsonResponse({'message' : 'INVALID PASSWORD'},    status = 400)
+            elif not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+                return JsonResponse({'message' : 'INVALID_PASSWORD'}, status = 401)
+            
             access_token = jwt.encode({'id' : user.id}, settings.SECRET_KEY, settings.ALGORITHM)
             return JsonResponse({'message' : 'SUCCESS', 'JWT' : access_token}, status = 200)
         except KeyError:
