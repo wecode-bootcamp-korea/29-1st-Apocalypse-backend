@@ -9,6 +9,9 @@ from django.conf    import settings
 
 from users.models   import User
 
+REGEX_EMAIL    = r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+REGEX_PASSWORD = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$'
+
 class SignUpView(View):
     def post(self, request):
         try:
@@ -20,9 +23,9 @@ class SignUpView(View):
             phone_number    = user_data['phone_number']
             hashed_password = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt()).decode('utf-8')
             
-            if not re.match(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', email):
+            if not re.match(REGEX_EMAIL, email):
                 return JsonResponse({'message' : 'INVALID EMAIL'},       status = 400)
-            if not re.match(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$', password):
+            if not re.match(REGEX_PASSWORD, password):
                 return JsonResponse({'message' : 'INVALID PASSWORD'},    status = 400)
             if User.objects.filter(email = email).exists():
                 return JsonResponse({'message' : 'ALREADY EXIST EMAIL'}, status = 400)
@@ -46,12 +49,12 @@ class SignInView(View):
             password        = user_data['password']
             user            = User.objects.get(email = email)
             
-            if not re.match(r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', email):
-                return JsonResponse({'message' : 'INVALID EMAIL'},       status = 400)
-            elif not re.match(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$', password):
-                return JsonResponse({'message' : 'INVALID PASSWORD'},    status = 400)
+            if not re.match(REGEX_EMAIL, email):
+                return JsonResponse({'message' : 'INVALID EMAIL'},     status = 400)
+            elif not re.match(REGEX_PASSWORD, password):
+                return JsonResponse({'message' : 'INVALID PASSWORD1'}, status = 400)
             elif not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
-                return JsonResponse({'message' : 'INVALID_PASSWORD'}, status = 401)
+                return JsonResponse({'message' : 'INVALID_PASSWORD2'}, status = 401)
             
             access_token = jwt.encode({'id' : user.id}, settings.SECRET_KEY, settings.ALGORITHM)
             return JsonResponse({'message' : 'SUCCESS', 'JWT' : access_token}, status = 200)
