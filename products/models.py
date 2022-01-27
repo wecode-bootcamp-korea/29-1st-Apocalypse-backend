@@ -11,6 +11,7 @@ class Subcategory(models.Model):
     name         = models.CharField(max_length=50)
     category     = models.ForeignKey("Category",on_delete=models.CASCADE, related_name='sub_categories')
     created_at   = models.DateTimeField(auto_now_add=True)
+    image_url    = models.URLField()
     
     class Meta:
         db_table = 'subcategories'
