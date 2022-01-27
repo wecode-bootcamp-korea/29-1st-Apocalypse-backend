@@ -27,7 +27,7 @@ class CategoryList(View):
 class MainPageProductList(View):
     def get(self,request):
             limited_products = Product.objects.filter(english_name__contains = 'Limited')
-            new_products     = Product.objects.filter(id__lte=5).order_by('created_at')
+            new_products     = Product.objects.filter(id__lte=5).order_by('-created_at')
             
             result = [{
                 'id'            : product.id,
