@@ -3,7 +3,7 @@ import json
 from django.views         import View
 from django.http          import JsonResponse
 
-from products.models import *
+from products.models      import *
 
 class CategoryList(View):
     def get(self,request):
@@ -23,31 +23,3 @@ class CategoryList(View):
             } for category in categories]
 
         return JsonResponse({'message':'SUCCESS' ,'Category' : result}, status=200)
-    
-class LimitedProductList(View):
-    def get(self,request):
-        feature_products = Product.objects.filter(english_name__contains = 'Limited')
-        
-        result = [{
-            'id'            : product.id,
-            'korean_name'   : product.korean_name,
-            'image'         : [image.image_url for image in product.images.filter(product_id = product.id)][0] 
-        } for product in feature_products]
-        
-        return JsonResponse({'message':'SUCCESS' ,'Limited Product List' : result}, status=200)
-
-class NewProductList(View):
-    def get(self,request):
-        new_products = Product.objects.filter(id__lte=5).order_by('created_at')
-        
-        result = [{
-            'id'            : product.id,
-            'korean_name'   : product.korean_name,
-            'english_name'  : product.english_name,
-            'price'         : product.price,
-            'image'         : [image.image_url for image in product.images.filter(product_id = product.id)][0]
-        } for product in new_products]
-        
-        return JsonResponse({'message':'SUCCESS' ,'New Product List' : result}, status=200)
-    
-
