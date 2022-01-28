@@ -29,9 +29,9 @@ class CategoryList(View):
 class ProductList(View):
     def get(self,request):
         try:
-            category_name    = request.GET.get('category',None).split(',')
-            subcategory_name = request.GET.getlist('subcategory', None)
-            sorting          = request.GET.get('sort', None)
+            category_name    = request.GET.get('category', None).split(',')
+            subcategory_name = request.GET.get('subcategory', None).split(',')
+            sorting          = request.GET.get('sort', 'id')
             limited          = request.GET.get('limited', None)
             q = Q()
             
@@ -44,10 +44,7 @@ class ProductList(View):
             if limited:
                 q &= Q(english_name__icontains = "limited")
                 
-            products = Product.objects.filter(q)
-            
-            if sorting:
-                products = products.order_by(sorting)
+            products = Product.objects.filter(q).order_by(sorting)
             
             result = [{
                 "id"           : product.id,
