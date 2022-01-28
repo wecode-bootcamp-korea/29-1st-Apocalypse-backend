@@ -9,7 +9,7 @@ from products.models      import *
 class CategoryList(View):
     def get(self,request):
         categories = Category.objects.all()
-
+        
         result = [{
             'id'            : category.id,
             'category_name' : category.name,
@@ -29,11 +29,11 @@ class CategoryList(View):
 class ProductList(View):
     def get(self,request):
         try:
-            category_name    = request.GET.getlist('category', None)
+            category_name    = request.GET.get('category',None).split(',')
             subcategory_name = request.GET.getlist('subcategory', None)
             sorting          = request.GET.get('sort', None)
             limited          = request.GET.get('limited', None)
-            q =Q()
+            q = Q()
             
             if category_name:
                 q &= Q(subcategory__category__name__in = category_name)
@@ -43,19 +43,12 @@ class ProductList(View):
             
             if limited:
                 q &= Q(english_name__icontains = "limited")
-
-            
+                
             products = Product.objects.filter(q)
             
-            if sorting == "price":
-                products = products.order_by("price")
-            elif sorting == "-price":
-                products = products.order_by("-price")
-            elif sorting == "date":
-                products = products.order_by("created_at")
-            elif sorting == "-date":
-                products = products.order_by("-created_at") 
-                            
+            if sorting:
+                products = products.order_by(sorting)
+            
             result = [{
                 "id"           : product.id,
                 "korean_name"  : product.korean_name,

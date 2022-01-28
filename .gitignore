@@ -383,10 +383,7 @@ zsdoc/data
 
 my_settings.py
 
-csv/categories.csv
-csv/images.csv
-csv/products.csv
-csv/subcategories.csv
+*.csv
 
 product_db_uploader.py
 image_db_uploader.py
