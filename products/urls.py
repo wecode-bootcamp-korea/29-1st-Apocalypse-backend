@@ -2,10 +2,10 @@ from django.urls import path
 
 from products.views import (
     CategoryList,
-    MainPageProductList,
+    ProductList,
 )
 
 urlpatterns = [
     path('/categories', CategoryList.as_view()),
-    path('/main', MainPageProductList.as_view()),
+    path('', ProductList.as_view()),
 ]
