@@ -1,10 +1,10 @@
-id,name,category_id
-1,근접 무기,1
-2,원거리 무기,1
-3,치료,4
-4,방탄모,3
-5,방탄조끼,3
-6,해독제,4
-7,식량,2
-8,보조기기,1
-9,의류,2
+id,name,category_id,image_url
+1,근접무기,1,test.jpg
+2,원거리무기,1,test.jpg
+3,치료,4,test.jpg
+4,방탄모,3,test.jpg
+5,방탄조끼,3,test.jpg
+6,해독제,4,test.jpg
+7,식량,2,test.jpg
+8,보조기기,1,test.jpg
+9,의류,2,test.jpg
