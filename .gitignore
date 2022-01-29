@@ -1,3 +1,6 @@
+my_settings.py
+csv/
+*_db_uploader.py
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,visualstudiocode,vim,macos,linux,zsh
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,visualstudiocode,vim,macos,linux,zsh
@@ -381,13 +384,3 @@ zsdoc/data
 
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,visualstudiocode,vim,macos,linux,zsh
 
-my_settings.py
-csv/categories.csv
-csv/images.csv
-csv/products.csv
-csv/subcategories.csv
-
-product_db_uploader.py
-image_db_uploader.py
-category_db_uploader.py
-subcategory_db_uploader.py
