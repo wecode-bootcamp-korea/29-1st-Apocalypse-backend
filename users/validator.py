@@ -16,4 +16,3 @@ class Validation():
         REGEX_PASSWORD = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$'
         if not re.match(REGEX_PASSWORD, password):
             raise ValidationError('INVALID_PASSWORD')
-    

@@ -32,8 +32,7 @@ class Wishlist(models.Model):
     updated_at   = models.DateTimeField(auto_now=True)
     
     class Meta:
-        db_table = 'wishlists'
-                
+        db_table = 'wishlists'       
 
 class Review(models.Model):
     user         = models.ForeignKey('User',on_delete=models.CASCADE,related_name='reviews')
@@ -44,6 +43,4 @@ class Review(models.Model):
     updated_at   = models.DateTimeField(auto_now=True)
     
     class Meta:
-        db_table = 'reviews'        
-        
-        
+        db_table = 'reviews'

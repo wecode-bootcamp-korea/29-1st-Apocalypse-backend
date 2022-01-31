@@ -21,13 +21,11 @@ class SignUpView(View):
             phone_number    = user_data['phone_number']
             hashed_password = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt()).decode('utf-8')
             
-            Validation.email_validator(email = email)
-            Validation.password_validator(password = password)
+            Validation.email_validator(email)
+            Validation.password_validator(password)
             
             if User.objects.filter(email = email).exists():
                 return JsonResponse({'message' : 'ALREADY EXIST EMAIL'}, status = 400)
-            if User.objects.filter(phone = phone_number).exists():
-                return JsonResponse({'message':'PHONE-NUMBER ALREADY EXISTS'}, status=400)
             
             User.objects.create(
                     email          = email,
@@ -52,8 +50,8 @@ class SignInView(View):
             password        = user_data['password']
             user            = User.objects.get(email = email)
             
-            Validation.email_validator(email = email)
-            Validation.password_validator(password = password)
+            Validation.email_validator(email)
+            Validation.password_validator(password)
             
             if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
                 return JsonResponse({'message' : 'INVALID_PASSWORD'}, status = 400)
