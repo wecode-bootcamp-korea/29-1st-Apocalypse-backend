@@ -1,16 +1,14 @@
 import json
-import re
 import bcrypt
 import jwt
 
-from django.http    import JsonResponse
-from django.views   import View
-from django.conf    import settings
+from django.forms    import ValidationError
+from django.http     import JsonResponse
+from django.views    import View
+from django.conf     import settings
 
-from users.models   import User
-
-REGEX_EMAIL    = r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-REGEX_PASSWORD = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$'
+from users.models    import User
+from users.validator import Validation
 
 class SignUpView(View):
     def post(self, request):
@@ -23,14 +21,15 @@ class SignUpView(View):
             phone_number    = user_data['phone_number']
             hashed_password = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt()).decode('utf-8')
             
-            if not re.match(REGEX_EMAIL, email):
-                return JsonResponse({'message' : 'INVALID EMAIL'},       status = 400)
-            if not re.match(REGEX_PASSWORD, password):
-                return JsonResponse({'message' : 'INVALID PASSWORD'},    status = 400)
+            Validation.email_validator(email = email)
+            Validation.password_validator(password = password)
+            
             if User.objects.filter(email = email).exists():
                 return JsonResponse({'message' : 'ALREADY EXIST EMAIL'}, status = 400)
+            if User.objects.filter(phone = phone_number).exists():
+                return JsonResponse({'message':'PHONE-NUMBER ALREADY EXISTS'}, status=400)
             
-            User.objects.create(  
+            User.objects.create(
                     email          = email,
                     password       = hashed_password,
                     name           = name,
@@ -40,6 +39,10 @@ class SignUpView(View):
             return JsonResponse({'message' : 'CREATED'},  status = 201)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
+        except json.JSONDecodeError:
+            return JsonResponse({'message' : 'JSONDECODE_ERROR'}, status = 400)    
+        except ValidationError as e:
+            return JsonResponse({'message' : e.message}, status = 400)
 
 class SignInView(View):
     def post(self, request):
@@ -49,12 +52,11 @@ class SignInView(View):
             password        = user_data['password']
             user            = User.objects.get(email = email)
             
-            if not re.match(REGEX_EMAIL, email):
-                return JsonResponse({'message' : 'INVALID EMAIL'},     status = 400)
-            elif not re.match(REGEX_PASSWORD, password):
-                return JsonResponse({'message' : 'INVALID PASSWORD1'}, status = 400)
-            elif not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
-                return JsonResponse({'message' : 'INVALID_PASSWORD2'}, status = 401)
+            Validation.email_validator(email = email)
+            Validation.password_validator(password = password)
+            
+            if not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+                return JsonResponse({'message' : 'INVALID_PASSWORD'}, status = 400)
             
             access_token = jwt.encode({'id' : user.id}, settings.SECRET_KEY, settings.ALGORITHM)
             return JsonResponse({'message' : 'SUCCESS', 'JWT' : access_token}, status = 200)
@@ -62,3 +64,7 @@ class SignInView(View):
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
         except User.DoesNotExist:
             return JsonResponse({'message' : 'DOES NOT EXIST USER'}, status = 400)
+        except json.JSONDecodeError:
+            return JsonResponse({'message' : 'JSONDECODE_ERROR'}, status = 400)
+        except ValidationError as e:
+            return JsonResponse({'message' : e.message}, status = 400)
