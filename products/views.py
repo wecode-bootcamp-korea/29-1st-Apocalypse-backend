@@ -69,7 +69,7 @@ class ProductList(View):
 class ProductDetailView(View):
     def get(self, request, product_id):
         try:
-            product = Product.objects.prefetch_related('components','images').get(id = product_id)
+            product = Product.objects.prefetch_related('components').get(id = product_id)
             result  = [
                 {
                     'id'           : product.id,
