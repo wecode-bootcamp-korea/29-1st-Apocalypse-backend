@@ -29,11 +29,17 @@ class CategoryList(View):
 class ProductList(View):
     def get(self,request):
         try:
-            category_name    = request.GET.get('category', None).split(',')
-            subcategory_name = request.GET.get('subcategory', None).split(',')
+            category_name    = request.GET.get('category',None)
+            subcategory_name = request.GET.get('subcategory',None)
             sorting          = request.GET.get('sort', 'id')
             limited          = request.GET.get('limited', None)
             q = Q()
+            
+            if category_name is not None:
+                category_name = category_name.split(',')
+                
+            if subcategory_name is not None:
+                subcategory_name = subcategory_name.split(',')
             
             if category_name:
                 q &= Q(subcategory__category__name__in = category_name)
@@ -59,7 +65,7 @@ class ProductList(View):
         
         except ValueError:
             return JsonResponse({'message':'VALUE_ERROR'}, status=400)
-
+        
 class ProductDetailView(View):
     def get(self, request, product_id):
         try:
@@ -72,7 +78,8 @@ class ProductDetailView(View):
                     'price'        : product.price,
                     'description'  : product.description,
                     'how_to_use'   : product.how_to_use,
-                    'images'       : [{'image_url' : image.image_url} for image in product.images.all()]
+                    'images'       : [{'image_url' : image.image_url} for image in product.images.all()],
+                    'components'   : [{'name': component.component.name}  for component in ProductComponent.objects.filter(product_id = product.id)]
                 }
             ]
             return JsonResponse({"product" : result}, status=200)
