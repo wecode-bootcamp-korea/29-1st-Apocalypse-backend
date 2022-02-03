@@ -9,7 +9,6 @@ class Shop(models.Model):
     class Meta:
         db_table = 'shops'
     
-
 class Reservation(models.Model):
     time         = models.DateField()
     user         = models.ForeignKey('users.User',on_delete=models.CASCADE,related_name='reservations')
