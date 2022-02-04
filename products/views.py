@@ -69,7 +69,7 @@ class ProductList(View):
 class ProductDetailView(View):
     def get(self, request, product_id):
         try:
-            product = Product.objects.get(id = product_id)
+            product = Product.objects.prefetch_related('components').get(id = product_id)
             result  = [
                 {
                     'id'           : product.id,
@@ -79,7 +79,7 @@ class ProductDetailView(View):
                     'description'  : product.description,
                     'how_to_use'   : product.how_to_use,
                     'images'       : [{'image_url' : image.image_url} for image in product.images.all()],
-                    'components'   : [{'name': component.component.name}  for component in ProductComponent.objects.filter(product_id = product.id)]
+                    'components'   : [{'name': component.name}  for component in product.components.all()]
                 }
             ]
             return JsonResponse({"product" : result}, status=200)
