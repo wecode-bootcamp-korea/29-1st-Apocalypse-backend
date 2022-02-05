@@ -9,7 +9,6 @@ from orders.models        import Order, OrderItem, OrderStatus, OrderItemStatus,
 from users.models         import User, Cart
 from users.utils          import login_decorator
 
-
 class OrderCheckout(View):
     @login_decorator
     def post(self,request):
@@ -42,6 +41,3 @@ class OrderCheckout(View):
                 
         except JSONDecodeError:
             return JsonResponse({'message': 'JSON_DECODE_ERROR'}, status=400)
-
-        
-        
