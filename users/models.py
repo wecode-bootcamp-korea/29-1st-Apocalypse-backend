@@ -16,7 +16,7 @@ class User(models.Model):
         db_table = "users"
 
 class Cart(models.Model):
-    quantity     = models.IntegerField()
+    quantity     = models.IntegerField(default=1)
     user         = models.ForeignKey("User",on_delete=models.CASCADE,related_name="carts")
     product      = models.ForeignKey('products.Product',on_delete=models.CASCADE,related_name='carts')
     created_at   = models.DateTimeField(auto_now_add=True)
