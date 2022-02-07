@@ -1,6 +1,5 @@
 import re
 import jwt
-import json
 
 from django.core.exceptions import ValidationError
 from django.http  import JsonResponse
