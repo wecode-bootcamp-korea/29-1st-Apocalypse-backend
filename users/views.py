@@ -8,7 +8,7 @@ from django.views    import View
 from django.conf     import settings
 
 from users.models    import User
-from users.validator import Validation
+from users.utils     import Validation, login_decorator
 
 class SignUpView(View):
     def post(self, request):
