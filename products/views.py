@@ -33,6 +33,7 @@ class ProductList(View):
             subcategory_name = request.GET.get('subcategory',None)
             sorting          = request.GET.get('sort', 'id')
             limited          = request.GET.get('limited', None)
+            
             q = Q()
             
             if category_name is not None:
@@ -69,19 +70,18 @@ class ProductList(View):
 class ProductDetailView(View):
     def get(self, request, product_id):
         try:
-            product = Product.objects.prefetch_related('components').get(id = product_id)
-            result  = [
-                {
-                    'id'           : product.id,
-                    'korean_name'  : product.korean_name,
-                    'english_name' : product.english_name,
-                    'price'        : product.price,
-                    'description'  : product.description,
-                    'how_to_use'   : product.how_to_use,
-                    'images'       : [{'image_url' : image.image_url} for image in product.images.all()],
-                    'components'   : [{'name': component.name}  for component in product.components.all()]
+            product = Product.objects.prefetch_related('components', 'images').get(id = product_id)
+            result  = {
+                'id'           : product.id,
+                'korean_name'  : product.korean_name,
+                'english_name' : product.english_name,
+                'price'        : product.price,
+                'description'  : product.description,
+                'how_to_use'   : product.how_to_use,
+                'images'       : [{'image_url' : image.image_url} for image in product.images.all()],
+                'components'   : [{'name': component.name}  for component in product.components.all()]
                 }
-            ]
             return JsonResponse({"product" : result}, status=200)
+        
         except Product.DoesNotExist:
             return JsonResponse({'message' : 'DOES NOT EXIST PRODUCT'}, status = 404)
