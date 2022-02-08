@@ -29,16 +29,16 @@ class OrderCheckout(View):
                 payment_method  = PaymentMethod.objects.get(name = payment_method)
             )
             
-            for cart in carts:
-                OrderItem.objects.create(
+            OrderItem.objects.bulk_create([OrderItem(
                     product  = cart.product.id,
                     order    = order.id,
                     status   = OrderItemStatus.objects.get(status='상품준비중').id,
                     quantity = cart.quantity,
                     price    = cart.product.price,
-                )
-                cart.delete()
+                )for cart in carts])
             
+            carts.delete()
+                
             return JsonResponse({'message': 'SUCCESS'}, status=200)
                 
         except JSONDecodeError:
