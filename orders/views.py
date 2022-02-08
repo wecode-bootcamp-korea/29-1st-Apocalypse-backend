@@ -2,6 +2,7 @@ import json
 
 from django.views         import View
 from django.http          import JsonResponse
+from django.db            import transaction
 from django.db.models     import Sum, F
 from json.decoder         import JSONDecodeError
 
@@ -14,36 +15,37 @@ class OrderCheckout(View):
     @login_decorator
     def post(self,request):
         try:
-            data           = json.loads(request.body)
-            user           = request.user
-            carts          = Cart.objects.filter(user_id = user.id).select_related("user","product")
-            contact        = data.get('contact', None)
-            payment_method = data.get('payment')
-            
-            order = Order.objects.create(
-                user            = user.id,
-                status          = OrderStatus.objects.get(status='입금확인중').id,
-                phone_number    = user.phone_number,
-                address         = user.address,
-                contact         = contact,
-                payment_method  = PaymentMethod.objects.get(name = payment_method)
-            )
-            
-            OrderItem.objects.bulk_create([OrderItem(
-                    product  = cart.product.id,
-                    order    = order.id,
-                    status   = OrderItemStatus.objects.get(status='상품준비중').id,
-                    quantity = cart.quantity,
-                    price    = cart.product.price,
-                )for cart in carts])
-            
-            carts.delete()
+            with transaction.atomic():   
+                data           = json.loads(request.body)
+                user           = request.user
+                carts          = Cart.objects.filter(user_id = user.id).select_related("user","product")
+                contact        = data.get('contact', None)
+                payment_method = data.get('payment')
                 
+                order = Order.objects.create(
+                    user            = user.id,
+                    status          = OrderStatus.objects.get(status='입금확인중').id,
+                    phone_number    = user.phone_number,
+                    address         = user.address,
+                    contact         = contact,
+                    payment_method  = PaymentMethod.objects.get(name = payment_method)
+                )
+
+                OrderItem.objects.bulk_create([OrderItem(
+                        product  = cart.product.id,
+                        order    = order.id,
+                        status   = OrderItemStatus.objects.get(status='상품준비중').id,
+                        quantity = cart.quantity,
+                        price    = cart.product.price,
+                    )for cart in carts])
+                
+                carts.delete()
+                    
             return JsonResponse({'message': 'SUCCESS'}, status=200)
                 
         except JSONDecodeError:
             return JsonResponse({'message': 'JSON_DECODE_ERROR'}, status=400)
-    
+        
     @login_decorator
     def get(self,request):
         try:
@@ -73,16 +75,17 @@ class OrderCheckout(View):
     @login_decorator
     def patch(self,request):
         try:
-            data     = json.loads(request.body)
-            user     = request.user
-            order_id = data.get('order_id', None)            
-            order    = Order.objects.filter(user_id = user.id, id = order_id).prefetch_related("orderitem")
-            
-            order.update(status = OrderStatus.objects.get(status='취소됨').id)
-            
-            for orderitem in order.orderitems.all():
-                orderitem.update(status = OrderItemStatus.objects.get(status='취소됨').id)
-            
+            with transaction.atomic():
+                data     = json.loads(request.body)
+                user     = request.user
+                order_id = data.get('order_id', None)            
+                order    = Order.objects.filter(user_id = user.id, id = order_id).prefetch_related("orderitem")
+                
+                order.update(status = OrderStatus.objects.get(status='취소됨').id)
+                
+                for orderitem in order.orderitems.all():
+                    orderitem.update(status = OrderItemStatus.objects.get(status='취소됨').id)
+                
             return JsonResponse({'message': 'SUCCESS', 'order_id' : order.id}, status=200)
         
         except JSONDecodeError:
