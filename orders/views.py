@@ -56,11 +56,12 @@ class OrderCheckout(View):
                 'user_name'   : order.user.name,
                 'total_price' : order.orderitems.aggregate(Sum(F('price') * F('quantity'))),
                 'order_item_list' :[{
-                    'id'      : orderitem.product.id,
-                    'name'    : orderitem.product.name,
-                    'status'  : orderitem.status,
-                    'quantity': orderitem.quantity, 
-                    'price'   : orderitem.product.price
+                    'id'       : orderitem.product.id,
+                    'name'     : orderitem.product.name,
+                    'status'   : orderitem.status,
+                    'quantity' : orderitem.quantity, 
+                    'price'    : orderitem.product.price,
+                    'sum_price' : orderitem.price * orderitem.quantity
                 }for orderitem in orders.order_items.all()]
             } for order in orders]
             
@@ -77,10 +78,10 @@ class OrderCheckout(View):
             order_id = data.get('order_id', None)            
             order    = Order.objects.filter(user_id = user.id, id = order_id).prefetch_related("orderitem")
             
-            order.update(OrderStatus.objects.get(status='취소됨').id)
+            order.update(status = OrderStatus.objects.get(status='취소됨').id)
             
             for orderitem in order.orderitems.all():
-                orderitem.update(OrderItemStatus.objects.get(status='취소됨').id)
+                orderitem.update(status = OrderItemStatus.objects.get(status='취소됨').id)
             
             return JsonResponse({'message': 'SUCCESS', 'order_id' : order.id}, status=200)
         
