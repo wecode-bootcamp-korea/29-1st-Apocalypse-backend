@@ -1,4 +1,23 @@
+from enum      import Enum
 from django.db import models
+
+class OrderStatusEnum(Enum):
+    CONFIRMING      = 1
+    PAID            = 2
+    PENDING         = 3
+    DELIVERD        = 4
+    ORDER_CANCELLED = 5
+    REFUNDED        = 6
+
+class OrderItemStatusEnum(Enum):
+    PAID            = 1
+    PREPARING       = 2
+    SHIPPED         = 3
+    DELIVERD        = 4
+    ORDER_CANCELLED = 5
+    REFUNDED        = 6
+    RETURNED        = 7
+
 
 class OrderStatus(models.Model):
     status = models.CharField(max_length=50)
@@ -40,3 +59,4 @@ class PaymentMethod(models.Model):
     
     class Meta:
         db_table = 'payment_methods'
+
