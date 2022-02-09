@@ -31,30 +31,36 @@ class OrderItemStatusEnum(Enum):
 class OrderView(View):
     @login_decorator
     def post(self,request):
-        with transaction.atomic():
-            data           = json.loads(request.body)
-            user           = request.user
-            carts          = Cart.objects.filter(user_id = user.id).select_related("user","product")
-            payment_method = data.get('payment')
-            
-            order = Order.objects.create(
-                user            = user,
-                status          = OrderStatus.objects.get(id = OrderStatusEnum.CONFIRMING.id),
-                payment_method  = PaymentMethod.objects.get(name = payment_method)
-            )
-            
-            OrderItem.objects.bulk_create([OrderItem(
-                    product  = cart.product,
-                    order    = order,
-                    status   = OrderItemStatus.objects.get(id = OrderItemStatusEnum.PAID.id),
-                    quantity = cart.quantity,
-                    price    = cart.product.price,
-                )for cart in carts])
-            
-            carts.delete()
-            
-        return JsonResponse({'message': 'SUCCESS'}, status=200)
-
+        try:
+            with transaction.atomic():
+                data           = json.loads(request.body)
+                user           = request.user
+                carts          = Cart.objects.filter(user_id = user.id).select_related("user","product")
+                payment_method = data.get('payment')
+                
+                order = Order.objects.create(
+                    user            = user,
+                    status          = OrderStatus.objects.get(id = OrderStatusEnum.CONFIRMING.id),
+                    payment_method  = PaymentMethod.objects.get(name = payment_method)
+                )
+                
+                OrderItem.objects.bulk_create([OrderItem(
+                        product  = cart.product,
+                        order    = order,
+                        status   = OrderItemStatus.objects.get(id = OrderItemStatusEnum.PAID.id),
+                        quantity = cart.quantity,
+                        price    = cart.product.price,
+                    )for cart in carts])
+                
+                carts.delete()
+            return JsonResponse({'message': 'SUCCESS'}, status=200)
+        
+        except KeyError:
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+        
+        except ValueError:
+            return JsonResponse({'message': 'INVALID_PAYMENT_METHOD'}, status=400)
+        
     @login_decorator
     def get(self,request):
         user   = request.user
