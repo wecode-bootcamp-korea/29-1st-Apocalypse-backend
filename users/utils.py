@@ -7,20 +7,23 @@ from django.conf  import settings
              
 from users.models import User
 
-class Validation():
-    def __init__(self, email, password):
-        self.email     = email
-        self.password  = password
+class EmailValidation:
+    def __init__(self, email, rules):
+        self.email = email
+        self.rules = rules
         
-    def email_validator(email):
-        REGEX_EMAIL    = r'^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-        if not re.match(REGEX_EMAIL, email):
+    def email_validator(email, rules):
+        if not re.match(rules, email):
             raise ValidationError('INVALID_EMAIL')
         
-    def password_validator(password):
-        REGEX_PASSWORD = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$'
-        if not re.match(REGEX_PASSWORD, password):
-            raise ValidationError('INVALID_PASSWORD')
+class PasswordValidation:
+    def __init__(self, password, rules):
+        self.password = password
+        self.rules    = rules
+    
+    def password_validator(password, rules):
+        if not re.match(rules, password):
+            raise ValidationError('INVALID_PASSWORD')        
         
 def login_decorator(func):
     def wrapper(self, request, *args, **kwargs):
