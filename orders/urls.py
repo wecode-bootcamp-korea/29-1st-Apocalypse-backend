@@ -1,7 +1,8 @@
 from django.urls import path
 
-from orders.views import OrderCheckout
+from orders.views import Order
 
 urlpatterns = [
-    path('', OrderCheckout.as_view()),
+    path('', Order.as_view()),
+    path('/<int:order_id>',Order.as_view()),
 ]

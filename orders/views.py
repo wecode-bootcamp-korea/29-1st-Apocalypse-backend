@@ -6,65 +6,64 @@ from django.db            import transaction
 from django.db.models     import Sum, F
 from json.decoder         import JSONDecodeError
 
-from products.models      import Product
 from orders.models        import Order, OrderItem, OrderStatus, OrderItemStatus, PaymentMethod
-from users.models         import User, Cart
+from users.models         import Cart
 from users.utils          import login_decorator
 
 class OrderCheckout(View):
     @login_decorator
     def post(self,request):
         try:
-            with transaction.atomic():   
+            with transaction.atomic():
                 data           = json.loads(request.body)
                 user           = request.user
                 carts          = Cart.objects.filter(user_id = user.id).select_related("user","product")
-                contact        = data.get('contact', None)
                 payment_method = data.get('payment')
                 
                 order = Order.objects.create(
-                    user            = user.id,
-                    status          = OrderStatus.objects.get(status='입금확인중').id,
-                    phone_number    = user.phone_number,
-                    address         = user.address,
-                    contact         = contact,
+                    user            = user,
+                    status          = OrderStatus.objects.get(status='입금확인중'),
                     payment_method  = PaymentMethod.objects.get(name = payment_method)
                 )
-
+                
                 OrderItem.objects.bulk_create([OrderItem(
-                        product  = cart.product.id,
-                        order    = order.id,
-                        status   = OrderItemStatus.objects.get(status='상품준비중').id,
+                        product  = cart.product,
+                        order    = order,
+                        status   = OrderItemStatus.objects.get(status='주문완료'),
                         quantity = cart.quantity,
                         price    = cart.product.price,
                     )for cart in carts])
                 
                 carts.delete()
-                    
+                
             return JsonResponse({'message': 'SUCCESS'}, status=200)
                 
         except JSONDecodeError:
             return JsonResponse({'message': 'JSON_DECODE_ERROR'}, status=400)
         
+        except KeyError:
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+    
     @login_decorator
     def get(self,request):
         try:
             user   = request.user
-            orders = Order.objects.filter(user=user).select_related('user','product').prefetch_related('orderitem')
-            
+            orders = Order.objects.filter(user=user).select_related('user').prefetch_related('order_items')
+            total_price = orders.aggregate(total_price = Sum(F('order_items__price') * F('order_items__quantity')))
             result = [{
                 'order_id'    : order.id,
                 'user'        : order.user.id,
                 'user_name'   : order.user.name,
-                'total_price' : order.orderitems.aggregate(Sum(F('price') * F('quantity'))),
+                'total_price' : total_price,
                 'order_item_list' :[{
-                    'id'       : orderitem.product.id,
-                    'name'     : orderitem.product.name,
-                    'status'   : orderitem.status,
-                    'quantity' : orderitem.quantity, 
-                    'price'    : orderitem.product.price,
-                    'sum_price' : orderitem.price * orderitem.quantity
-                }for orderitem in orders.order_items.all()]
+                    'id'           : orderitem.product.id,
+                    'korean_name'  : orderitem.product.korean_name,
+                    'english_name' : orderitem.product.english_name,
+                    'status'       : orderitem.status.status,
+                    'quantity'     : orderitem.quantity, 
+                    'price'        : orderitem.product.price,
+                    'sum_price'    : orderitem.price * orderitem.quantity
+                }for orderitem in order.order_items.all()]
             } for order in orders]
             
             return JsonResponse({'message': 'SUCCESS', 'result' : result}, status=200)
@@ -73,20 +72,17 @@ class OrderCheckout(View):
             return JsonResponse({'message': 'JSON_DECODE_ERROR'}, status=400)
 
     @login_decorator
-    def patch(self,request):
+    def patch(self, request ,order_id):
         try:
-            with transaction.atomic():
-                data     = json.loads(request.body)
-                user     = request.user
-                order_id = data.get('order_id', None)            
-                order    = Order.objects.filter(user_id = user.id, id = order_id).prefetch_related("orderitem")
+            with transaction.atomic():         
+                order    = Order.objects.prefetch_related("order_items").get(user_id = request.user.id, id = order_id)   
                 
-                order.update(status = OrderStatus.objects.get(status='취소됨').id)
+                order.status = OrderStatus.objects.get(status='취소됨')
+                order.save()
                 
-                for orderitem in order.orderitems.all():
-                    orderitem.update(status = OrderItemStatus.objects.get(status='취소됨').id)
+                order.order_items.all().update(status = OrderItemStatus.objects.get(status='취소됨'))
                 
-            return JsonResponse({'message': 'SUCCESS', 'order_id' : order.id}, status=200)
+            return JsonResponse({'message': 'SUCCESS'}, status=200)
         
         except JSONDecodeError:
             return JsonResponse({'message': 'JSON_DECODE_ERROR'}, status=400)
