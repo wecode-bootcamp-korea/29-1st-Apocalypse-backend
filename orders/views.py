@@ -30,14 +30,14 @@ class OrderView(View):
                 
                 order = Order.objects.create(
                     user            = user,
-                    status          = OrderStatus.objects.get(id = OrderStatusEnum.CONFIRMING),
+                    status          = OrderStatusEnum.CONFIRMING.value,
                     payment_method  = PaymentMethod.objects.get(name = payment_method)
                 )
                 
                 OrderItem.objects.bulk_create([OrderItem(
                         product  = cart.product,
                         order    = order,
-                        status   = OrderItemStatus.objects.get(id = OrderItemStatusEnum.PAID),
+                        status   = OrderItemStatusEnum.PAID.value,
                         quantity = cart.quantity,
                         price    = cart.product.price,
                     )for cart in carts])
@@ -81,10 +81,10 @@ class OrderView(View):
             with transaction.atomic():         
                 order    = Order.objects.prefetch_related("order_items").get(user_id = request.user.id, id = order_id)   
                 
-                order.status = OrderStatus.objects.get(id = OrderStatusEnum.ORDER_CANCELLED)
+                order.status = OrderStatusEnum.ORDER_CANCELLED.value
                 order.save()
                 
-                order.order_items.all().update(status = OrderItemStatus.objects.get(id = OrderItemStatusEnum.ORDER_CANCELLED))
+                order.order_items.all().update(status = OrderItemStatusEnum.ORDER_CANCELLED.value)
                 
             return JsonResponse({'message': 'SUCCESS'}, status=200)
         
