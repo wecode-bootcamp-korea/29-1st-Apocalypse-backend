@@ -1,13 +1,32 @@
 import json
+from enum                 import Enum
 
 from django.views         import View
 from django.http          import JsonResponse
-from django.db            import transaction, IntegrityError
+from django.db            import transaction
 from django.db.models     import Sum, F
+from django.db.utils      import IntegrityError
 
 from orders.models        import Order, OrderItem, OrderStatus, OrderItemStatus, PaymentMethod
 from users.models         import Cart
 from users.utils          import login_decorator
+
+class OrderStatusEnum(Enum):
+    CONFIRMING      = 1
+    PAID            = 2
+    PENDING         = 3
+    DELIVERD        = 4
+    ORDER_CANCELLED = 5
+    REFUNDED        = 6
+
+class OrderItemStatusEnum(Enum):
+    PAID            = 1
+    PREPARING       = 2
+    SHIPPED         = 3
+    DELIVERD        = 4
+    ORDER_CANCELLED = 5
+    REFUNDED        = 6
+    RETURNED        = 7
 
 class OrderView(View):
     @login_decorator
@@ -20,14 +39,14 @@ class OrderView(View):
             
             order = Order.objects.create(
                 user            = user,
-                status          = OrderStatus.objects.get(status='입금확인중'),
+                status          = OrderStatus.objects.get(id = OrderStatusEnum.CONFIRMING.id),
                 payment_method  = PaymentMethod.objects.get(name = payment_method)
             )
             
             OrderItem.objects.bulk_create([OrderItem(
                     product  = cart.product,
                     order    = order,
-                    status   = OrderItemStatus.objects.get(status='주문완료'),
+                    status   = OrderItemStatus.objects.get(id = OrderItemStatusEnum.PAID.id),
                     quantity = cart.quantity,
                     price    = cart.product.price,
                 )for cart in carts])
@@ -36,7 +55,6 @@ class OrderView(View):
             
         return JsonResponse({'message': 'SUCCESS'}, status=200)
 
-    
     @login_decorator
     def get(self,request):
         user   = request.user
@@ -67,10 +85,10 @@ class OrderView(View):
             with transaction.atomic():         
                 order    = Order.objects.prefetch_related("order_items").get(user_id = request.user.id, id = order_id)   
                 
-                order.status = OrderStatus.objects.get(status='취소됨')
+                order.status = OrderStatus.objects.get(id = OrderStatusEnum.ORDER_CANCELLED.id)
                 order.save()
                 
-                order.order_items.all().update(status = OrderItemStatus.objects.get(status='취소됨'))
+                order.order_items.all().update(status = OrderItemStatus.objects.get(id = OrderItemStatusEnum.ORDER_CANCELLED.id))
                 
             return JsonResponse({'message': 'SUCCESS'}, status=200)
         
