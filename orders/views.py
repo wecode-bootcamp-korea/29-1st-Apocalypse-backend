@@ -9,8 +9,6 @@ from django.db.utils      import IntegrityError
 from orders.models        import (
         Order, 
         OrderItem, 
-        OrderStatus, 
-        OrderItemStatus, 
         PaymentMethod, 
         OrderStatusEnum, 
         OrderItemStatusEnum

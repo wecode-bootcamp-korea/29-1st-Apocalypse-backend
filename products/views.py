@@ -85,3 +85,20 @@ class ProductDetailView(View):
         
         except Product.DoesNotExist:
             return JsonResponse({'message' : 'DOES NOT EXIST PRODUCT'}, status = 404)
+
+class ProductSearchView(View):
+    def get(self, request):
+        search_name    = request.GET.get('keyword', None)
+
+        products = Product.objects.filter(Q(korean_name__icontains = search_name)|Q(english_name__icontains = search_name))
+        
+        result = [{
+                "id"           : product.id,
+                "korean_name"  : product.korean_name,
+                "english_name" : product.english_name,
+                "price"        : round(product.price),
+                "image"        : [image.image_url for image in product.images.filter(product_id = product.id)][0],
+                "description"  : product.description
+            }for product in products]
+        
+        return JsonResponse({'message':'SUCCESS' ,'Product' : result}, status=200)
