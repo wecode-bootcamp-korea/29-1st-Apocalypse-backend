@@ -4,11 +4,12 @@ from django.views         import View
 from django.http          import JsonResponse
 from django.db            import transaction
 from django.db.models     import Sum, F
-from django.db.utils      import IntegrityError
 
 from orders.models        import (
         Order, 
         OrderItem, 
+        OrderStatus, 
+        OrderItemStatus, 
         PaymentMethod, 
         OrderStatusEnum, 
         OrderItemStatusEnum
@@ -26,27 +27,32 @@ class OrderView(View):
                 carts          = Cart.objects.filter(user_id = user.id).select_related("user","product")
                 payment_method = data.get('payment')
                 
-                order = Order.objects.create(
-                    user            = user,
-                    status          = OrderStatusEnum.CONFIRMING.value,
-                    payment_method  = PaymentMethod.objects.get(name = payment_method)
-                )
+                if Cart.objects.filter(user_id = user.id).exists():
+                    order = Order.objects.create(
+                        user            = user,
+                        status          = OrderStatus(OrderStatusEnum.CONFIRMING.value),
+                        payment_method  = PaymentMethod.objects.get(name = payment_method)
+                    )
+                    
+                    OrderItem.objects.bulk_create([OrderItem(
+                            product  = cart.product,
+                            order    = order,
+                            status   = OrderItemStatus(OrderItemStatusEnum.PAID.value),
+                            quantity = cart.quantity,
+                            price    = cart.product.price,
+                        )for cart in carts])
+                    
+                    carts.delete()
+                    
+                else:
+                    return JsonResponse({'message': 'DOES_NOT_EXIST_CART'}, status=400)
                 
-                OrderItem.objects.bulk_create([OrderItem(
-                        product  = cart.product,
-                        order    = order,
-                        status   = OrderItemStatusEnum.PAID.value,
-                        quantity = cart.quantity,
-                        price    = cart.product.price,
-                    )for cart in carts])
-                
-                carts.delete()
             return JsonResponse({'message': 'SUCCESS'}, status=200)
         
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
         
-        except ValueError:
+        except PaymentMethod.DoesNotExist:
             return JsonResponse({'message': 'INVALID_PAYMENT_METHOD'}, status=400)
         
     @login_decorator
@@ -76,15 +82,18 @@ class OrderView(View):
     @login_decorator
     def patch(self, request ,order_id):
         try:
-            with transaction.atomic():         
-                order    = Order.objects.prefetch_related("order_items").get(user_id = request.user.id, id = order_id)   
+            with transaction.atomic():
+                order    = Order.objects.prefetch_related("order_items").get(user_id = request.user.id, id = order_id)
                 
-                order.status = OrderStatusEnum.ORDER_CANCELLED.value
-                order.save()
-                
-                order.order_items.all().update(status = OrderItemStatusEnum.ORDER_CANCELLED.value)
+                if order.status != OrderStatus(OrderStatusEnum.ORDER_CANCELLED.value):          
+                    order.status = OrderStatus(OrderStatusEnum.ORDER_CANCELLED.value)
+                    order.save()
+                    
+                    order.order_items.all().update(status = OrderItemStatus(OrderItemStatusEnum.ORDER_CANCELLED.value))
+                else:
+                    return JsonResponse({'message': 'ALREADY_CANCELED'}, status=400)
                 
             return JsonResponse({'message': 'SUCCESS'}, status=200)
         
-        except IntegrityError:
+        except Order.DoesNotExist:
             return JsonResponse({'message' : 'DOES_NOT_EXIST_ORDER'}, status = 400)
