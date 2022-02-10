@@ -1,4 +1,5 @@
 import json
+from re import search
 
 from django.views         import View
 from django.http          import JsonResponse
@@ -33,6 +34,7 @@ class ProductList(View):
             subcategory_name = request.GET.get('subcategory',None)
             sorting          = request.GET.get('sort', 'id')
             limited          = request.GET.get('limited', None)
+            search           = request.GET.get('keyword', None)
             
             q = Q()
             
@@ -50,6 +52,9 @@ class ProductList(View):
             
             if limited:
                 q &= Q(english_name__icontains = "limited")
+            
+            if search:
+                q &= Q(english_name__icontains = search)|Q(korean_name__icontains = search)
                 
             products = Product.objects.filter(q).order_by(sorting)
             
