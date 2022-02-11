@@ -51,7 +51,7 @@
 
 장바구니 Data를 들어와 주문/주문상품 Table에 추가(POST), 장바구니 Table Data 삭제(DELETE), Transaction을 통한 무결성 보장
 - 주문 내역 조회(GET)
-- 주문 취소(PATCH) - 상품 Status 변경
+- 주문 취소(PATCH) - 주문/주문상품 Status 변경, Transaction을 통한 무결성 보장
 
 ## Reference
 [API Documentation](https://documenter.getpostman.com/view/19473444/UVeJKkH6)
