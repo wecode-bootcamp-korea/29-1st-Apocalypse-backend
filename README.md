@@ -15,7 +15,7 @@
 
 ## 적용 기술 및 구현 기능
 - `Frontend`       : JavaScript, React.js, SASS, React-router-dom
-- `Backend`        : Python, Django, MySQL, AWS (EC2, RDS, S3)
+- `Backend`        : Python, Django, MySQL, AWS(EC2, RDS, S3)
 - `협업 및 일정 관리` : Git, Github, Slack, Trello, Notion
 
 ## Backend Features
@@ -27,7 +27,7 @@
 | <b>이강일</b> | 모델링, 로그인/회원가입, 상품 상세정보, 장바구니, 관심상품       |
 
 #### User API
-- 회원가입, bcrypt 암호화, Validation,인증/인가 모듈화
+- 회원가입 - bcrypt 암호화, Validation, 인증/인가 모듈화
 - 로그인 - 로그인시 JWT 토큰 발급
 
 #### Product API
@@ -42,9 +42,9 @@
 - 장바구니 삭제(DELETE)
 
 #### Wishlist API
-- 장바구니 추가(POST), 이미 있을 시 삭제(DELETE)
-- 장바구니 조회(GET)
-- 장바구니 삭제(DELETE)
+- 관심상품 추가(POST), 이미 있을 시 삭제(DELETE)
+- 관심상품 조회(GET)
+- 관심상품 삭제(DELETE)
 
 #### Order API
 - 주문하기
